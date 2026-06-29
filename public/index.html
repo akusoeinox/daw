@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎮 Dota 2 Heroes</title>
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- ПРОВЕРКА СЕССИИ ПРИ ЗАГРУЗКЕ -->
+  <script>
+    (function() {
+      const currentUser = localStorage.getItem('currentUser');
+      
+      // Если нет пользователя - редирект на логин
+      if (!currentUser) {
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      try {
+        const user = JSON.parse(currentUser);
+        if (!user.isLoggedIn) {
+          window.location.href = 'login.html';
+          return;
+        }
+        console.log('👋 Добро пожаловать, ' + user.name + '!');
+      } catch (e) {
+        localStorage.removeItem('currentUser');
+        window.location.href = 'login.html';
+      }
+    })();
+  </script>
+  
+</head>
+<body>
+
+<div class="bg-gradient"></div>
+
+<div class="container">
+  <header class="header">
+    <div class="header-left">
+      <h1>🎮 DOTA 2</h1>
+      <p>HEROES <span class="rank-badge">&lt; 7k MMR</span></p>
+    </div>
+    <div class="header-right">
+      <div class="search-box">
+        <input type="text" id="heroSearch" placeholder="🔍 Поиск героя...">
+      </div>
+      
+      <!-- ИНФОРМАЦИЯ О ПОЛЬЗОВАТЕЛЕ -->
+      <div class="user-info" id="userInfo" style="display: none;">
+        <span class="user-name" id="userNameDisplay"></span>
+        <button class="logout-btn" id="logoutBtn">🚪 Выйти</button>
+      </div>
+      
+      <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all">Все</button>
+        <button class="filter-btn" data-filter="carry">Carry</button>
+        <button class="filter-btn" data-filter="mid">Mid</button>
+        <button class="filter-btn" data-filter="offlane">Offlane</button>
+        <button class="filter-btn" data-filter="support">Support</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="heroes-grid" id="heroesGrid">
+    <!-- Герои будут вставлены через JS -->
+  </div>
+
+  <!-- Модальное окно с гайдом -->
+  <div class="modal-overlay" id="heroModal">
+    <div class="modal">
+      <button class="modal-close" id="modalClose">✕</button>
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-hero-icon" id="modalIcon">⚔️</div>
+          <div>
+            <h2 id="modalName">Pudge</h2>
+            <span class="modal-role" id="modalRole">Mid</span>
+          </div>
+          <div class="modal-winrate">
+            <span class="winrate-label">Винрейт &lt;7k</span>
+            <span class="winrate-value" id="modalWinrate">52.3%</span>
+          </div>
+        </div>
+        <div class="modal-body">
+          <div class="builds-section">
+            <h3>📦 Сборки</h3>
+            <div class="build-tabs">
+              <button class="build-tab active" data-build="core">Core</button>
+              <button class="build-tab" data-build="situational">Ситуационные</button>
+              <button class="build-tab" data-build="luxury">Лакшери</button>
+            </div>
+            <div class="build-items" id="buildItems">
+              <!-- Сборки будут вставлены через JS -->
+            </div>
+          </div>
+          <div class="skills-section">
+            <h3>🎯 Скиллы</h3>
+            <div class="skill-order" id="skillOrder">
+              <!-- Скиллы будут вставлены через JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 Вход - Dota 2 Heroes</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .login-box {
+            background: rgba(10, 16, 28, 0.95);
+            border: 1px solid rgba(0, 180, 200, 0.15);
+            border-radius: 20px;
+            padding: 40px 45px;
+            max-width: 420px;
+            width: 100%;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.6);
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .login-header h1 {
+            color: #00b4c8;
+            font-size: 36px;
+            font-weight: 800;
+        }
+        .login-header p {
+            color: #4a7a8a;
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+        .login-header .dota-icon {
+            font-size: 52px;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            padding-bottom: 12px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 8px;
+            color: #6a8a9a;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .tab-btn:hover {
+            background: rgba(0, 180, 200, 0.06);
+            color: #b8dce8;
+        }
+        .tab-btn.active {
+            background: rgba(0, 180, 200, 0.12);
+            border-color: rgba(0, 180, 200, 0.2);
+            color: #00b4c8;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            color: #6a8a9a;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0, 180, 200, 0.05);
+            border: 1px solid rgba(0, 180, 200, 0.10);
+            border-radius: 10px;
+            color: #b8dce8;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .form-group input:focus {
+            border-color: #00b4c8;
+            outline: none;
+            box-shadow: 0 0 25px rgba(0, 180, 200, 0.08);
+        }
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: rgba(0, 180, 200, 0.15);
+            border: 1px solid rgba(0, 180, 200, 0.25);
+            border-radius: 10px;
+            color: #00b4c8;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .login-btn:hover {
+            background: rgba(0, 180, 200, 0.25);
+            box-shadow: 0 0 40px rgba(0, 180, 200, 0.1);
+            transform: translateY(-2px);
+        }
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .error-message {
+            background: rgba(139, 26, 43, 0.15);
+            border: 1px solid rgba(139, 26, 43, 0.25);
+            color: #b8344a;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            display: none;
+            margin-top: 12px;
+            text-align: center;
+        }
+        .error-message.show { display: block; }
+        .success-message {
+            background: rgba(0, 180, 200, 0.12);
+            border: 1px solid rgba(0, 180, 200, 0.2);
+            color: #00b4c8;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            display: none;
+            margin-top: 12px;
+            text-align: center;
+        }
+        .success-message.show { display: block; }
+        .form-hidden { display: none; }
+        .demo-hint {
+            background: rgba(0, 180, 200, 0.05);
+            border: 1px dashed rgba(0, 180, 200, 0.15);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-top: 16px;
+            text-align: center;
+        }
+        .demo-hint p { color: #4a7a8a; font-size: 12px; margin: 2px 0; }
+        .demo-hint .demo-cred { color: #00b4c8; font-weight: 600; font-size: 13px; }
+        .password-hint { font-size: 11px; color: #4a6a7a; margin-top: 4px; }
+        .password-hint.valid { color: #5a9a5a; }
+        .password-hint.invalid { color: #b8344a; }
+        .login-footer { text-align: center; margin-top: 20px; color: #3a6a7a; font-size: 12px; }
+        .login-footer span { color: #4a8a9a; }
+    </style>
+</head>
+<body>
+<div class="bg-gradient"></div>
+<div class="login-container">
+    <div class="login-box">
+        <div class="login-header">
+            <span class="dota-icon">🎮</span>
+            <h1>DOTA 2</h1>
+            <p>HEROES GUIDE</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="login" id="loginTab">🔑 Вход</button>
+            <button class="tab-btn" data-tab="register" id="registerTab">📝 Регистрация</button>
+        </div>
+
+        <!-- ВХОД -->
+        <form id="loginForm">
+            <div class="form-group">
+                <label>👤 Логин</label>
+                <input type="text" id="loginInput" placeholder="Введите логин">
+            </div>
+            <div class="form-group">
+                <label>🔒 Пароль</label>
+                <input type="password" id="passwordInput" placeholder="Введите пароль">
+            </div>
+            <button type="submit" class="login-btn">🔑 ВОЙТИ</button>
+            <div class="error-message" id="errorMessage">❌ Неверный логин или пароль!</div>
+            <div class="success-message" id="successMessage">✅ Успешный вход!</div>
+            <div class="demo-hint">
+                <p>📝 Демо: <span class="demo-cred">admin</span> | <span class="demo-cred">admin123</span></p>
+            </div>
+        </form>
+
+        <!-- РЕГИСТРАЦИЯ -->
+        <form id="registerForm" class="form-hidden">
+            <div class="form-group">
+                <label>👤 Логин</label>
+                <input type="text" id="regLoginInput" placeholder="Минимум 3 символа">
+            </div>
+            <div class="form-group">
+                <label>🔒 Пароль</label>
+                <input type="password" id="regPasswordInput" placeholder="Минимум 6 символов">
+                <div class="password-hint" id="passwordHint">Пароль должен быть минимум 6 символов</div>
+            </div>
+            <div class="form-group">
+                <label>🔒 Повтори пароль</label>
+                <input type="password" id="regPasswordConfirm" placeholder="Повторите пароль">
+            </div>
+            <button type="submit" class="login-btn">📝 ЗАРЕГИСТРИРОВАТЬСЯ</button>
+            <div class="error-message" id="regErrorMessage">❌ Ошибка регистрации!</div>
+            <div class="success-message" id="regSuccessMessage">✅ Регистрация успешна!</div>
+        </form>
+
+        <div class="login-footer"><span>⚡ Dota 2 Heroes Guide v2.0</span></div>
+    </div>
+</div>
+<script src="login.js"></script>
+</body>
+</html>
