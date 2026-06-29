@@ -552,6 +552,7 @@ async function searchPlayerOpenDota(query) {
 }
 
 // Импорт из OpenDota
+// Импорт из OpenDota (С ПРЯМЫМ ОБНОВЛЕНИЕМ ВЕРХНЕГО ВИНРЕЙТА)
 async function importFromOpenDota(heroId) {
     if (!heroId) {
         alert('Сначала выберите героя');
@@ -573,10 +574,39 @@ async function importFromOpenDota(heroId) {
         const stats = await getHeroStatsOpenDota(accountId, heroId);
         
         if (stats && stats.games > 0) {
-            updateHeroStats(heroId, stats.games, stats.wins);
+            // 1. Сохраняем в localStorage
+            saveHeroStats(heroId, stats);
+            
+            // 2. Обновляем карточки в сетке
+            renderHeroes(currentFilter, searchInput.value);
+            
+            // 3. ⭐ ПРЯМОЕ ОБНОВЛЕНИЕ ВЕРХНЕГО ВИНРЕЙТА
             const wr = Math.round((stats.wins / stats.games) * 100);
+            
+            // Обновляем верхний винрейт в заголовке
+            const winrateElement = document.getElementById('modalWinrate');
+            const labelElement = document.getElementById('modalWinrateLabel');
+            
+            if (winrateElement) {
+                winrateElement.textContent = `${wr}%`;
+            }
+            if (labelElement) {
+                labelElement.textContent = `Ваш винрейт (${stats.games} игр)`;
+            }
+            
+            // 4. Обновляем нижнюю секцию статистики
+            document.getElementById('statGames').textContent = stats.games;
+            document.getElementById('statWins').textContent = stats.wins;
+            document.getElementById('statLosses').textContent = stats.losses;
+            document.getElementById('statWinrate').textContent = `${wr}%`;
+            
+            // 5. Обновляем поля ручного ввода
+            document.getElementById('manualGames').value = stats.games;
+            document.getElementById('manualWins').value = stats.wins;
+            
             statusEl.textContent = `✅ ${stats.games} игр, ${stats.wins} побед (${wr}%)`;
             statusEl.style.color = '#4caf50';
+            
         } else if (stats) {
             statusEl.textContent = `⚠️ Нет игр на герое ${hero.name}`;
             statusEl.style.color = '#ffd700';
@@ -588,49 +618,10 @@ async function importFromOpenDota(heroId) {
         statusEl.textContent = `❌ ${error.message}`;
         statusEl.style.color = '#ff6b6b';
     }
+    // После сохранения статистики, перерисовываем модалку
+if (modal.classList.contains('active')) {
+    showModal(hero);
 }
-
-// Поиск игрока (UI)
-async function searchPlayerOpenDotaUI() {
-    const query = document.getElementById('openDotaAccountId').value.trim();
-    if (!query) {
-        alert('Введите Steam ID или никнейм');
-        return;
-    }
-
-    const resultsDiv = document.getElementById('searchResults');
-    resultsDiv.innerHTML = '⏳ Поиск...';
-    resultsDiv.style.display = 'block';
-
-    try {
-        const startTime = Date.now();
-        const results = await searchPlayerOpenDota(query);
-        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-        
-        if (results && results.length > 0) {
-            resultsDiv.innerHTML = results.map(player => `
-                <div class="search-result-item" onclick="
-                    document.getElementById('openDotaAccountId').value='${player.account_id}';
-                    document.getElementById('searchResults').style.display='none';
-                    document.getElementById('importStatus').textContent='✅ Найден: ${player.personaname} (${elapsed}с)';
-                    document.getElementById('importStatus').style.color='#4caf50';
-                ">
-                    <img src="${player.avatar || 'https://cdn.opendota.com/apps/dota2/images/players/default.png'}" 
-                         onerror="this.style.display='none'" 
-                         style="width: 30px; height: 30px; border-radius: 50%;">
-                    <span>${player.personaname}</span>
-                    <span style="color: #4a7a8a; font-size: 11px;">ID: ${player.account_id}</span>
-                </div>
-            `).join('');
-            resultsDiv.innerHTML += `<div style="color: #4a7a8a; font-size: 11px; padding: 4px 10px;">⏱️ Поиск занял ${elapsed} секунд</div>`;
-        } else {
-            resultsDiv.innerHTML = '❌ Игрок не найден';
-            resultsDiv.style.color = '#ff6b6b';
-        }
-    } catch (error) {
-        resultsDiv.innerHTML = `❌ ${error.message}`;
-        resultsDiv.style.color = '#ff6b6b';
-    }
 }
 // ============================================
 // РУЧНОЙ ВВОД СТАТИСТИКИ
@@ -772,73 +763,81 @@ function selectHero(id) {
 // ПОКАЗАТЬ МОДАЛКУ
 // ============================================
 
+// Показать модалку (обновленная версия)
+// Показать модалку (обновленная версия)
 function showModal(hero) {
-  const stats = getHeroStats(hero.id);
-  const winrate = calculateWinrate(stats.games, stats.wins);
+    const stats = getHeroStats(hero.id);
+    const personalWinrate = calculateWinrate(stats.games, stats.wins);
 
-  const modalIcon = document.getElementById('modalIcon');
-  if (hero.icon) {
-    modalIcon.innerHTML = `<img src="${hero.icon}" class="modal-hero-icon-img" alt="${hero.name}">`;
-  } else {
-    modalIcon.innerHTML = `<div class="modal-hero-placeholder">${hero.name.charAt(0)}</div>`;
-  }
+    const modalIcon = document.getElementById('modalIcon');
+    if (hero.icon) {
+        modalIcon.innerHTML = `<img src="${hero.icon}" class="modal-hero-icon-img" alt="${hero.name}">`;
+    } else {
+        modalIcon.innerHTML = `<div class="modal-hero-placeholder">${hero.name.charAt(0)}</div>`;
+    }
 
-  document.getElementById('modalName').textContent = hero.name;
-  document.getElementById('modalRole').textContent = hero.role;
-  
-  if (stats.games > 0) {
-    document.getElementById('modalWinrate').textContent = `${winrate}%`;
-    document.getElementById('modalWinrateLabel').textContent = `Ваш винрейт (${stats.games} игр)`;
-  } else {
-    document.getElementById('modalWinrate').textContent = `${hero.winrate}%`;
-    document.getElementById('modalWinrateLabel').textContent = 'Средний винрейт <7k';
-  }
+    document.getElementById('modalName').textContent = hero.name;
+    document.getElementById('modalRole').textContent = hero.role;
+    
+    // ⭐ ВЕРХНИЙ ВИНРЕЙТ (в заголовке)
+    // Сначала показываем общий, потом обновим если есть личный
+    const winrateElement = document.getElementById('modalWinrate');
+    const labelElement = document.getElementById('modalWinrateLabel');
+    
+    // Сохраняем общий винрейт в data-атрибут для использования позже
+    winrateElement.dataset.globalWinrate = hero.winrate;
+    
+    // Показываем общий винрейт
+    winrateElement.textContent = `${hero.winrate}%`;
+    labelElement.textContent = 'Средний винрейт <7k';
 
-  document.getElementById('statGames').textContent = stats.games;
-  document.getElementById('statWins').textContent = stats.wins;
-  document.getElementById('statLosses').textContent = stats.losses;
-  document.getElementById('statWinrate').textContent = `${winrate}%`;
-  
-  document.getElementById('manualGames').value = stats.games;
-  document.getElementById('manualWins').value = stats.wins;
+    // ⭐ НИЖНЯЯ СЕКЦИЯ СТАТИСТИКИ (всегда показывает ОБЩИЙ винрейт)
+    document.getElementById('statGames').textContent = stats.games;
+    document.getElementById('statWins').textContent = stats.wins;
+    document.getElementById('statLosses').textContent = stats.losses;
+    document.getElementById('statWinrate').textContent = `${personalWinrate}%`;
+    
+    document.getElementById('manualGames').value = stats.games;
+    document.getElementById('manualWins').value = stats.wins;
 
-  const buildItems = document.getElementById('buildItems');
-  const buildTabs = document.querySelectorAll('.build-tab');
+    // ... остальной код (сборки, скиллы)
+    const buildItems = document.getElementById('buildItems');
+    const buildTabs = document.querySelectorAll('.build-tab');
 
-  function renderBuild(type) {
-    const items = hero.builds[type] || [];
-    buildItems.innerHTML = items.map(item => `
-      <div class="build-item">
-        <img src="${item.icon}" class="item-icon-img" alt="${item.name}">
-        ${item.name}
-      </div>
+    function renderBuild(type) {
+        const items = hero.builds[type] || [];
+        buildItems.innerHTML = items.map(item => `
+            <div class="build-item">
+                <img src="${item.icon}" class="item-icon-img" alt="${item.name}">
+                ${item.name}
+            </div>
+        `).join('');
+    }
+
+    buildTabs.forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.dataset.build === 'core') tab.classList.add('active');
+    });
+    renderBuild('core');
+
+    buildTabs.forEach(tab => {
+        tab.onclick = () => {
+            buildTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            renderBuild(tab.dataset.build);
+        };
+    });
+
+    const skillOrder = document.getElementById('skillOrder');
+    skillOrder.innerHTML = hero.skills.map(skill => `
+        <div class="skill-item">
+            <span class="skill-key">${skill.key}</span>
+            <img src="${skill.icon}" class="skill-icon-img" alt="${skill.name}">
+            ${skill.name}
+        </div>
     `).join('');
-  }
 
-  buildTabs.forEach(tab => {
-    tab.classList.remove('active');
-    if (tab.dataset.build === 'core') tab.classList.add('active');
-  });
-  renderBuild('core');
-
-  buildTabs.forEach(tab => {
-    tab.onclick = () => {
-      buildTabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      renderBuild(tab.dataset.build);
-    };
-  });
-
-  const skillOrder = document.getElementById('skillOrder');
-  skillOrder.innerHTML = hero.skills.map(skill => `
-    <div class="skill-item">
-      <span class="skill-key">${skill.key}</span>
-      <img src="${skill.icon}" class="skill-icon-img" alt="${skill.name}">
-      ${skill.name}
-    </div>
-  `).join('');
-
-  modal.classList.add('active');
+    modal.classList.add('active');
 }
 
 // ============================================
@@ -937,6 +936,200 @@ async function quickImport() {
         statusEl.style.color = '#ff6b6b';
     }
 }
+// ============================================
+// ОБНОВЛЕНИЕ ОБЩИХ ВИНРЕЙТОВ ГЕРОЕВ
+// ============================================
+
+// Флаг обновления
+let isUpdatingWinrates = false;
+
+// Получить общий винрейт героя из OpenDota (по всем игрокам)
+async function getGlobalHeroWinrate(heroId) {
+    try {
+        const hero = heroesData.find(h => h.id === heroId);
+        if (!hero || !hero.stratzId) {
+            console.log(`❌ Герой с ID ${heroId} не найден`);
+            return null;
+        }
+        
+        console.log(`📊 Запрос общего винрейта для ${hero.name} (ID: ${hero.stratzId})`);
+        
+        // Используем OpenDota API для получения общей статистики героя
+        const response = await fetch(`https://api.opendota.com/api/heroStats`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Ищем нашего героя
+        const heroStats = data.find(h => h.id === hero.stratzId);
+        
+        if (heroStats) {
+            // winrate в процентах (win / games * 100)
+            const winrate = (heroStats.win / heroStats.games) * 100;
+            const rounded = Math.round(winrate * 10) / 10;
+            console.log(`✅ ${hero.name}: ${rounded}% (${heroStats.games} игр)`);
+            return rounded;
+        } else {
+            console.log(`⚠️ Герой ${hero.name} не найден в heroStats`);
+            return null;
+        }
+    } catch (error) {
+        console.error('❌ Ошибка получения общего винрейта:', error);
+        return null;
+    }
+}
+
+// Обновить винрейт одного героя (по кнопке в модалке)
+// Обновить ОБЩИЙ винрейт (кнопка "Обновить")
+async function updateSingleHeroWinrate(heroId) {
+    if (!heroId) {
+        alert('Сначала выберите героя');
+        return;
+    }
+    
+    const hero = heroesData.find(h => h.id === heroId);
+    if (!hero) {
+        alert('Герой не найден');
+        return;
+    }
+    
+    const statusEl = document.getElementById('updateStatus');
+    if (statusEl) {
+        statusEl.textContent = `🔄 Обновление ${hero.name}...`;
+        statusEl.style.color = '#ffd700';
+    }
+    
+    try {
+        const winrate = await getGlobalHeroWinrate(heroId);
+        
+        if (winrate !== null && !isNaN(winrate)) {
+            // Обновляем общий винрейт
+            hero.winrate = winrate;
+            
+            // ⭐ ОБНОВЛЯЕМ ТОЛЬКО ЕСЛИ СВЕРХУ ПОКАЗАН ОБЩИЙ ВИНРЕЙТ
+            // Проверяем, есть ли личная статистика у этого героя
+            const stats = getHeroStats(heroId);
+            
+            if (modal.classList.contains('active')) {
+                const winrateElement = document.getElementById('modalWinrate');
+                const labelElement = document.getElementById('modalWinrateLabel');
+                
+                // Если нет личной статистики - обновляем общий винрейт
+                if (stats.games === 0) {
+                    winrateElement.textContent = `${winrate}%`;
+                    labelElement.textContent = 'Средний винрейт <7k (обновлен)';
+                } else {
+                    // Если есть личная - не трогаем верхний винрейт
+                    // Показываем сообщение, что общий обновлен
+                    if (statusEl) {
+                        statusEl.textContent = `✅ Общий винрейт ${hero.name}: ${winrate}% (ваш личный: ${Math.round((stats.wins/stats.games)*100)}%)`;
+                        statusEl.style.color = '#4caf50';
+                    }
+                }
+            }
+            
+            // Перерисовываем карточки
+            renderHeroes(currentFilter, searchInput.value);
+            
+        } else {
+            if (statusEl) {
+                statusEl.textContent = `❌ Не удалось получить данные для ${hero.name}`;
+                statusEl.style.color = '#ff6b6b';
+            }
+        }
+    } catch (error) {
+        if (statusEl) {
+            statusEl.textContent = `❌ Ошибка: ${error.message}`;
+            statusEl.style.color = '#ff6b6b';
+        }
+    }
+}
+// Обновить общий винрейт для всех героев (по кнопке в хедере)
+async function updateAllGlobalWinrates() {
+    if (isUpdatingWinrates) return;
+    
+    isUpdatingWinrates = true;
+    
+    // Создаем статус-бар если его нет
+    let status = document.getElementById('updateStatus');
+    if (!status) {
+        status = document.createElement('div');
+        status.id = 'updateStatus';
+        status.style.cssText = `
+            font-size: 12px;
+            color: #ffd700;
+            padding: 4px 12px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            border: 1px solid rgba(255,215,0,0.1);
+            display: inline-block;
+            margin-left: 10px;
+        `;
+        const header = document.querySelector('.header-right') || document.querySelector('.header');
+        if (header) {
+            header.appendChild(status);
+        }
+    }
+    
+    status.textContent = '🔄 Загрузка данных...';
+    status.style.color = '#ffd700';
+    status.style.display = 'inline-block';
+    
+    try {
+        // Получаем все данные один раз
+        const response = await fetch(`https://api.opendota.com/api/heroStats`);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const allHeroStats = await response.json();
+        
+        let updated = 0;
+        
+        // Обновляем каждого героя
+        for (const hero of heroesData) {
+            const heroStats = allHeroStats.find(h => h.id === hero.stratzId);
+            if (heroStats) {
+                const winrate = (heroStats.win / heroStats.games) * 100;
+                hero.winrate = Math.round(winrate * 10) / 10;
+                updated++;
+            }
+        }
+        
+        // Перерисовываем карточки
+        renderHeroes(currentFilter, searchInput.value);
+        
+        // Обновляем модалку, если она открыта
+        if (selectedHeroId) {
+            const hero = heroesData.find(h => h.id === selectedHeroId);
+            if (hero && modal.classList.contains('active')) {
+                document.getElementById('modalWinrate').textContent = `${hero.winrate}%`;
+                document.getElementById('modalWinrateLabel').textContent = 'Средний винрейт <7k (обновлен)';
+            }
+        }
+        
+        status.textContent = `✅ Обновлено ${updated} героев!`;
+        status.style.color = '#4caf50';
+        
+    } catch (error) {
+        status.textContent = `❌ Ошибка: ${error.message}`;
+        status.style.color = '#ff6b6b';
+        console.error('Ошибка обновления:', error);
+    }
+    
+    isUpdatingWinrates = false;
+    
+    // Скрываем статус через 5 секунд
+    setTimeout(() => {
+        if (status.textContent.includes('✅')) {
+            status.textContent = '';
+            status.style.display = 'none';
+        }
+    }, 5000);
+}
+
 
 renderHeroes();
 
