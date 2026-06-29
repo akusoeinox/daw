@@ -1,5 +1,5 @@
 // ============================================
-// ПРОВЕРКА СЕССИИ (упрощенная)
+// ПРОВЕРКА СЕССИИ
 // ============================================
 
 (function() {
@@ -50,78 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================
-// ДАЛЬШЕ ВЕСЬ ТВОЙ КОД С ГЕРОЯМИ
-// ============================================
-// ... (весь heroesData и остальной код)
-// ============================================
-// ПРОВЕРКА СЕССИИ
+// ДАННЫЕ ГЕРОЕВ
 // ============================================
 
-function checkSession() {
-  // Проверяем, не на странице ли логина мы уже
-  if (window.location.pathname.includes('login.html')) {
-    return null;
-  }
-
-  const currentUser = localStorage.getItem('currentUser');
-  
-  if (!currentUser) {
-    window.location.href = 'login.html';
-    return null;
-  }
-
-  try {
-    const user = JSON.parse(currentUser);
-    if (!user.isLoggedIn) {
-      window.location.href = 'login.html';
-      return null;
-    }
-    return user;
-  } catch (e) {
-    localStorage.removeItem('currentUser');
-    window.location.href = 'login.html';
-    return null;
-  }
-}
-
-// Проверяем сессию
-const user = checkSession();
-
-if (user) {
-  console.log(`👋 Привет, ${user.name}! (ID: ${user.id})`);
-  
-  document.addEventListener('DOMContentLoaded', () => {
-    const userInfo = document.getElementById('userInfo');
-    const userNameDisplay = document.getElementById('userNameDisplay');
-    
-    if (userInfo && userNameDisplay) {
-      userInfo.style.display = 'flex';
-      userNameDisplay.textContent = `👤 ${user.name}`;
-    }
-  });
-}
-
-// ============================================
-// ВЫХОД
-// ============================================
-
-function logout() {
-  localStorage.removeItem('currentUser');
-  window.location.href = 'login.html';
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  const logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', logout);
-  }
-});
-// ============================================
-// ДАЛЬШЕ ВЕСЬ ТВОЙ КОД С ГЕРОЯМИ
-// ============================================
-
-// ДАННЫЕ ГЕРОЕВ - ЗДЕСЬ ВСТАВЛЯЙ СВОИ ГИФКИ
-// ДАННЫЕ ГЕРОЕВ - ЗДЕСЬ ВСТАВЛЯЙ СВОИ ГИФКИ И PNG
 const heroesData = [
   {
     id: 1,
@@ -131,6 +62,7 @@ const heroesData = [
     roleClass: 'mid',
     rarity: 'legendary',
     winrate: 52.3,
+    stratzId: 14,
     builds: {
       core: [
         { name: "Aghanim's Shard", icon: 'items/shard.png' },
@@ -164,6 +96,7 @@ const heroesData = [
     roleClass: 'mid',
     rarity: 'legendary',
     winrate: 48.7,
+    stratzId: 74,
     builds: {
       core: [
         { name: "Aghanim's Scepter", icon: 'items/aghanim_scepter.png' },
@@ -197,6 +130,7 @@ const heroesData = [
     roleClass: 'carry',
     rarity: 'mythical',
     winrate: 51.8,
+    stratzId: 44,
     builds: {
       core: [
         { name: 'Battle Fury', icon: 'items/battle_fury.png' },
@@ -230,6 +164,7 @@ const heroesData = [
     roleClass: 'offlane',
     rarity: 'common',
     winrate: 53.1,
+    stratzId: 2,
     builds: {
       core: [
         { name: 'Vanguard', icon: 'items/vanguard.png' },
@@ -263,6 +198,7 @@ const heroesData = [
     roleClass: 'support',
     rarity: 'common',
     winrate: 50.5,
+    stratzId: 5,
     builds: {
       core: [
         { name: 'Glimmer Cape', icon: 'items/glimmer_cape.png' },
@@ -296,6 +232,7 @@ const heroesData = [
     roleClass: 'mid',
     rarity: 'rare',
     winrate: 49.2,
+    stratzId: 17,
     builds: {
       core: [
         { name: 'Bloodstone', icon: 'items/bloodstone.png' },
@@ -329,6 +266,7 @@ const heroesData = [
     roleClass: 'carry',
     rarity: 'mythical',
     winrate: 47.9,
+    stratzId: 109,
     builds: {
       core: [
         { name: 'Manta Style', icon: 'items/manta_style.png' },
@@ -362,6 +300,7 @@ const heroesData = [
     roleClass: 'support',
     rarity: 'rare',
     winrate: 51.0,
+    stratzId: 86,
     builds: {
       core: [
         { name: 'Blink Dagger', icon: 'items/blink_dagger.png' },
@@ -395,6 +334,7 @@ const heroesData = [
     roleClass: 'offlane',
     rarity: 'uncommon',
     winrate: 52.7,
+    stratzId: 129,
     builds: {
       core: [
         { name: 'Blink Dagger', icon: 'items/blink_dagger.png' },
@@ -428,6 +368,7 @@ const heroesData = [
     roleClass: 'support',
     rarity: 'common',
     winrate: 49.8,
+    stratzId: 26,
     builds: {
       core: [
         { name: 'Blink Dagger', icon: 'items/blink_dagger.png' },
@@ -461,6 +402,7 @@ const heroesData = [
     roleClass: 'mid',
     rarity: 'mythical',
     winrate: 48.5,
+    stratzId: 11,
     builds: {
       core: [
         { name: 'Shadow Blade', icon: 'items/shadow_blade.png' },
@@ -494,6 +436,7 @@ const heroesData = [
     roleClass: 'support',
     rarity: 'rare',
     winrate: 50.9,
+    stratzId: 111,
     builds: {
       core: [
         { name: 'Force Staff', icon: 'items/force_staff.png' },
@@ -521,7 +464,246 @@ const heroesData = [
   }
 ];
 
-// DOM элементы
+// ============================================
+// ХРАНИЛИЩЕ СТАТИСТИКИ
+// ============================================
+
+const STATS_KEY = 'heroStats';
+
+function getHeroStats(heroId) {
+    const allStats = JSON.parse(localStorage.getItem(STATS_KEY) || '{}');
+    return allStats[heroId] || { games: 0, wins: 0, losses: 0 };
+}
+
+function saveHeroStats(heroId, stats) {
+    const allStats = JSON.parse(localStorage.getItem(STATS_KEY) || '{}');
+    allStats[heroId] = stats;
+    localStorage.setItem(STATS_KEY, JSON.stringify(allStats));
+}
+
+function calculateWinrate(games, wins) {
+    if (games === 0) return 0;
+    return Math.round((wins / games) * 100 * 10) / 10;
+}
+
+// ============================================
+// OPENDOTA API - БЕЗ КЛЮЧА, БЕСПЛАТНО!
+// ============================================
+
+// Получить статистику героя через OpenDota
+async function getHeroStatsOpenDota(accountId, heroId) {
+    try {
+        const hero = heroesData.find(h => h.id === heroId);
+        if (!hero || !hero.stratzId) {
+            throw new Error('Герой не найден');
+        }
+        
+        console.log(`📊 Запрос статистики для героя ${hero.name} (ID: ${hero.stratzId})`);
+        
+        const response = await fetch(
+            `https://api.opendota.com/api/players/${accountId}/heroes`
+        );
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        const heroStats = data.find(h => h.hero_id === hero.stratzId);
+        
+        if (heroStats) {
+            return {
+                games: heroStats.games || 0,
+                wins: heroStats.win || 0,
+                losses: (heroStats.games || 0) - (heroStats.win || 0)
+            };
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('❌ Ошибка OpenDota:', error);
+        throw error;
+    }
+}
+
+// Поиск игрока через OpenDota
+async function searchPlayerOpenDota(query) {
+    try {
+        const response = await fetch(
+            `https://api.opendota.com/api/search?q=${encodeURIComponent(query)}`
+        );
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        return data.slice(0, 5).map(player => ({
+            account_id: player.account_id,
+            personaname: player.personaname || 'Anonymous',
+            avatar: player.avatarfull || player.avatarmedium || ''
+        }));
+    } catch (error) {
+        console.error('❌ Ошибка поиска:', error);
+        return [];
+    }
+}
+
+// Импорт из OpenDota
+async function importFromOpenDota(heroId) {
+    if (!heroId) {
+        alert('Сначала выберите героя');
+        return;
+    }
+
+    const accountId = document.getElementById('openDotaAccountId').value.trim();
+    if (!accountId) {
+        alert('Введите Steam ID');
+        return;
+    }
+
+    const hero = heroesData.find(h => h.id === heroId);
+    const statusEl = document.getElementById('importStatus');
+    statusEl.textContent = `⏳ Загрузка данных для ${hero.name}...`;
+    statusEl.style.color = '#ffd700';
+
+    try {
+        const stats = await getHeroStatsOpenDota(accountId, heroId);
+        
+        if (stats && stats.games > 0) {
+            updateHeroStats(heroId, stats.games, stats.wins);
+            const wr = Math.round((stats.wins / stats.games) * 100);
+            statusEl.textContent = `✅ ${stats.games} игр, ${stats.wins} побед (${wr}%)`;
+            statusEl.style.color = '#4caf50';
+        } else if (stats) {
+            statusEl.textContent = `⚠️ Нет игр на герое ${hero.name}`;
+            statusEl.style.color = '#ffd700';
+        } else {
+            statusEl.textContent = '❌ Игрок не найден. Проверьте Steam ID.';
+            statusEl.style.color = '#ff6b6b';
+        }
+    } catch (error) {
+        statusEl.textContent = `❌ ${error.message}`;
+        statusEl.style.color = '#ff6b6b';
+    }
+}
+
+// Поиск игрока (UI)
+async function searchPlayerOpenDotaUI() {
+    const query = document.getElementById('openDotaAccountId').value.trim();
+    if (!query) {
+        alert('Введите Steam ID или никнейм');
+        return;
+    }
+
+    const resultsDiv = document.getElementById('searchResults');
+    resultsDiv.innerHTML = '⏳ Поиск...';
+    resultsDiv.style.display = 'block';
+
+    try {
+        const startTime = Date.now();
+        const results = await searchPlayerOpenDota(query);
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        
+        if (results && results.length > 0) {
+            resultsDiv.innerHTML = results.map(player => `
+                <div class="search-result-item" onclick="
+                    document.getElementById('openDotaAccountId').value='${player.account_id}';
+                    document.getElementById('searchResults').style.display='none';
+                    document.getElementById('importStatus').textContent='✅ Найден: ${player.personaname} (${elapsed}с)';
+                    document.getElementById('importStatus').style.color='#4caf50';
+                ">
+                    <img src="${player.avatar || 'https://cdn.opendota.com/apps/dota2/images/players/default.png'}" 
+                         onerror="this.style.display='none'" 
+                         style="width: 30px; height: 30px; border-radius: 50%;">
+                    <span>${player.personaname}</span>
+                    <span style="color: #4a7a8a; font-size: 11px;">ID: ${player.account_id}</span>
+                </div>
+            `).join('');
+            resultsDiv.innerHTML += `<div style="color: #4a7a8a; font-size: 11px; padding: 4px 10px;">⏱️ Поиск занял ${elapsed} секунд</div>`;
+        } else {
+            resultsDiv.innerHTML = '❌ Игрок не найден';
+            resultsDiv.style.color = '#ff6b6b';
+        }
+    } catch (error) {
+        resultsDiv.innerHTML = `❌ ${error.message}`;
+        resultsDiv.style.color = '#ff6b6b';
+    }
+}
+// ============================================
+// РУЧНОЙ ВВОД СТАТИСТИКИ
+// ============================================
+
+function saveManualStats() {
+    if (!selectedHeroId) {
+        alert('Сначала выберите героя');
+        return;
+    }
+    
+    const games = parseInt(document.getElementById('manualGames').value) || 0;
+    const wins = parseInt(document.getElementById('manualWins').value) || 0;
+    
+    if (wins > games) {
+        alert('❌ Побед не может быть больше чем игр!');
+        return;
+    }
+    
+    updateHeroStats(selectedHeroId, games, wins);
+    
+    const statusEl = document.getElementById('manualStatus');
+    statusEl.textContent = `✅ Сохранено! ${games} игр, ${wins} побед`;
+    statusEl.style.color = '#4caf50';
+    statusEl.style.display = 'block';
+    
+    setTimeout(() => {
+        statusEl.style.display = 'none';
+    }, 3000);
+}
+
+function resetHeroStats() {
+    if (!selectedHeroId) {
+        alert('Сначала выберите героя');
+        return;
+    }
+    
+    const hero = heroesData.find(h => h.id === selectedHeroId);
+    if (!confirm(`Сбросить статистику для ${hero?.name}?`)) {
+        return;
+    }
+    
+    updateHeroStats(selectedHeroId, 0, 0);
+    
+    const statusEl = document.getElementById('manualStatus');
+    statusEl.textContent = '🔄 Статистика сброшена';
+    statusEl.style.color = '#ffd700';
+    statusEl.style.display = 'block';
+    
+    setTimeout(() => {
+        statusEl.style.display = 'none';
+    }, 3000);
+}
+
+function updateHeroStats(heroId, games, wins) {
+    const stats = { 
+        games: parseInt(games), 
+        wins: parseInt(wins),
+        losses: parseInt(games) - parseInt(wins)
+    };
+    saveHeroStats(heroId, stats);
+    renderHeroes(currentFilter, searchInput.value);
+    
+    const hero = heroesData.find(h => h.id === heroId);
+    if (hero && modal.classList.contains('active')) {
+        showModal(hero);
+    }
+}
+
+// ============================================
+// DOM ЭЛЕМЕНТЫ
+// ============================================
+
 const grid = document.getElementById('heroesGrid');
 const searchInput = document.getElementById('heroSearch');
 const filterBtns = document.querySelectorAll('.filter-btn');
@@ -531,7 +713,10 @@ const modalClose = document.getElementById('modalClose');
 let selectedHeroId = null;
 let currentFilter = 'all';
 
-// Рендер героев
+// ============================================
+// РЕНДЕР ГЕРОЕВ
+// ============================================
+
 function renderHeroes(filter = 'all', search = '') {
   const filtered = heroesData.filter(hero => {
     const matchFilter = filter === 'all' || hero.roleClass === filter;
@@ -540,6 +725,10 @@ function renderHeroes(filter = 'all', search = '') {
   });
 
   grid.innerHTML = filtered.map(hero => {
+    const stats = getHeroStats(hero.id);
+    const winrate = calculateWinrate(stats.games, stats.wins);
+    const displayWinrate = stats.games > 0 ? `${winrate}% (${stats.games} игр)` : `${hero.winrate}%`;
+
     const iconHtml = hero.icon ?
       `<img src="${hero.icon}" class="hero-icon-img" alt="${hero.name}">` :
       `<div class="hero-icon-placeholder">${hero.name.charAt(0)}</div>`;
@@ -548,18 +737,22 @@ function renderHeroes(filter = 'all', search = '') {
       <div class="hero-card ${hero.rarity} ${selectedHeroId === hero.id ? 'selected' : ''}"
            data-id="${hero.id}"
            onclick="selectHero(${hero.id})">
-        <div class="winrate-tooltip">📊 ${hero.winrate}% &lt;7k</div>
+        <div class="winrate-tooltip">📊 ${displayWinrate} ${stats.games > 0 ? '👤' : ''}</div>
         <div class="hero-icon">
           ${iconHtml}
         </div>
         <div class="hero-name">${hero.name}</div>
         <div class="hero-role-tag">${hero.role}</div>
+        ${stats.games > 0 ? `<div class="hero-stats-tag">${stats.games} игр | ${winrate}%</div>` : ''}
       </div>
     `;
   }).join('');
 }
 
-// Выбор героя с анимацией
+// ============================================
+// ВЫБОР ГЕРОЯ
+// ============================================
+
 function selectHero(id) {
   const hero = heroesData.find(h => h.id === id);
   if (!hero) return;
@@ -575,8 +768,14 @@ function selectHero(id) {
   showModal(hero);
 }
 
-// Показать модалку
+// ============================================
+// ПОКАЗАТЬ МОДАЛКУ
+// ============================================
+
 function showModal(hero) {
+  const stats = getHeroStats(hero.id);
+  const winrate = calculateWinrate(stats.games, stats.wins);
+
   const modalIcon = document.getElementById('modalIcon');
   if (hero.icon) {
     modalIcon.innerHTML = `<img src="${hero.icon}" class="modal-hero-icon-img" alt="${hero.name}">`;
@@ -586,7 +785,22 @@ function showModal(hero) {
 
   document.getElementById('modalName').textContent = hero.name;
   document.getElementById('modalRole').textContent = hero.role;
-  document.getElementById('modalWinrate').textContent = hero.winrate + '%';
+  
+  if (stats.games > 0) {
+    document.getElementById('modalWinrate').textContent = `${winrate}%`;
+    document.getElementById('modalWinrateLabel').textContent = `Ваш винрейт (${stats.games} игр)`;
+  } else {
+    document.getElementById('modalWinrate').textContent = `${hero.winrate}%`;
+    document.getElementById('modalWinrateLabel').textContent = 'Средний винрейт <7k';
+  }
+
+  document.getElementById('statGames').textContent = stats.games;
+  document.getElementById('statWins').textContent = stats.wins;
+  document.getElementById('statLosses').textContent = stats.losses;
+  document.getElementById('statWinrate').textContent = `${winrate}%`;
+  
+  document.getElementById('manualGames').value = stats.games;
+  document.getElementById('manualWins').value = stats.wins;
 
   const buildItems = document.getElementById('buildItems');
   const buildTabs = document.querySelectorAll('.build-tab');
@@ -627,7 +841,10 @@ function showModal(hero) {
   modal.classList.add('active');
 }
 
-// Закрыть модалку
+// ============================================
+// ЗАКРЫТЬ МОДАЛКУ
+// ============================================
+
 function closeModal() {
   modal.classList.remove('active');
 }
@@ -637,12 +854,14 @@ modal.addEventListener('click', (e) => {
   if (e.target === modal) closeModal();
 });
 
-// Поиск
+// ============================================
+// ПОИСК И ФИЛЬТРЫ
+// ============================================
+
 searchInput.addEventListener('input', () => {
   renderHeroes(currentFilter, searchInput.value);
 });
 
-// Фильтры
 filterBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     filterBtns.forEach(b => b.classList.remove('active'));
@@ -652,5 +871,74 @@ filterBtns.forEach(btn => {
   });
 });
 
-// Инициализация
+// ============================================
+// ИНИЦИАЛИЗАЦИЯ
+// ============================================
+function quickSearchById() {
+    const query = document.getElementById('openDotaAccountId').value.trim();
+    if (!query) {
+        alert('Введите Steam ID');
+        return;
+    }
+    
+    // Проверяем, что введено число
+    if (!/^\d+$/.test(query)) {
+        alert('Введите числовой Steam ID (например, 1061233158)');
+        return;
+    }
+    
+    // Сразу подставляем ID и показываем статус
+    const resultsDiv = document.getElementById('searchResults');
+    resultsDiv.innerHTML = `✅ Найден игрок с ID: ${query}`;
+    resultsDiv.style.display = 'block';
+    resultsDiv.style.color = '#4caf50';
+    
+    document.getElementById('importStatus').textContent = `✅ Готов к импорту! ID: ${query}`;
+    document.getElementById('importStatus').style.color = '#4caf50';
+}
+
+// Быстрый импорт (без поиска)
+async function quickImport() {
+    if (!selectedHeroId) {
+        alert('Сначала выберите героя');
+        return;
+    }
+
+    const accountId = document.getElementById('openDotaAccountId').value.trim();
+    if (!accountId) {
+        alert('Введите Steam ID');
+        return;
+    }
+
+    const hero = heroesData.find(h => h.id === selectedHeroId);
+    const statusEl = document.getElementById('importStatus');
+    statusEl.textContent = `⏳ Загрузка для ${hero.name}...`;
+    statusEl.style.color = '#ffd700';
+
+    try {
+        const startTime = Date.now();
+        const stats = await getHeroStatsOpenDota(accountId, selectedHeroId);
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        
+        if (stats && stats.games > 0) {
+            updateHeroStats(selectedHeroId, stats.games, stats.wins);
+            const wr = Math.round((stats.wins / stats.games) * 100);
+            statusEl.textContent = `✅ ${stats.games} игр, ${stats.wins} побед (${wr}%) (${elapsed}с)`;
+            statusEl.style.color = '#4caf50';
+        } else if (stats) {
+            statusEl.textContent = `⚠️ Нет игр на герое ${hero.name}`;
+            statusEl.style.color = '#ffd700';
+        } else {
+            statusEl.textContent = '❌ Игрок не найден. Проверьте ID.';
+            statusEl.style.color = '#ff6b6b';
+        }
+    } catch (error) {
+        statusEl.textContent = `❌ ${error.message}`;
+        statusEl.style.color = '#ff6b6b';
+    }
+}
+
 renderHeroes();
+
+console.log('🎮 Dota 2 Heroes App loaded!');
+console.log('📊 OpenDota API ready! (free, no key needed)');

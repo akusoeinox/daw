@@ -11,7 +11,6 @@
     (function() {
       const currentUser = localStorage.getItem('currentUser');
       
-      // Если нет пользователя - редирект на логин
       if (!currentUser) {
         window.location.href = 'login.html';
         return;
@@ -47,7 +46,6 @@
         <input type="text" id="heroSearch" placeholder="🔍 Поиск героя...">
       </div>
       
-      <!-- ИНФОРМАЦИЯ О ПОЛЬЗОВАТЕЛЕ -->
       <div class="user-info" id="userInfo" style="display: none;">
         <span class="user-name" id="userNameDisplay"></span>
         <button class="logout-btn" id="logoutBtn">🚪 Выйти</button>
@@ -79,11 +77,70 @@
             <span class="modal-role" id="modalRole">Mid</span>
           </div>
           <div class="modal-winrate">
-            <span class="winrate-label">Винрейт &lt;7k</span>
+            <span class="winrate-label" id="modalWinrateLabel">Средний винрейт &lt;7k</span>
             <span class="winrate-value" id="modalWinrate">52.3%</span>
           </div>
         </div>
+        
         <div class="modal-body">
+          <!-- СЕКЦИЯ СТАТИСТИКИ -->
+          <div class="stats-section" id="statsSection">
+            <h3>📊 Ваша статистика</h3>
+            <div class="stats-grid">
+              <div class="stat-item">
+                <span class="stat-label">Всего игр</span>
+                <span class="stat-value" id="statGames">0</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Побед</span>
+                <span class="stat-value win" id="statWins">0</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Поражений</span>
+                <span class="stat-value loss" id="statLosses">0</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Винрейт</span>
+                <span class="stat-value" id="statWinrate">0%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ИМПОРТ ИЗ OPENDOTA -->
+          <!-- ИМПОРТ ИЗ OPENDOTA -->
+<div class="import-section">
+    <h3>🔌 Импорт из OpenDota</h3>
+    <div class="import-controls">
+        <input type="text" id="openDotaAccountId" placeholder="Введите Steam ID" class="import-input" value="1061233158">
+        <button onclick="quickSearchById()" class="import-btn search-btn">⚡ Проверить ID</button>
+        <button onclick="quickImport()" class="import-btn import-btn-primary">📥 Быстрый импорт</button>
+        <button onclick="searchPlayerOpenDotaUI()" class="import-btn" style="background:rgba(255,255,255,0.05);color:#8aacbc;border:1px solid rgba(255,255,255,0.05);">🔍 Поиск по никнейму</button>
+    </div>
+    <div id="searchResults" class="search-results" style="display: none;"></div>
+    <div id="importStatus" class="import-status"></div>
+    <div class="import-hint">
+        <small>ℹ️ Для быстрого импорта введите ID и нажмите "Быстрый импорт". Поиск по никнейму может быть медленным.</small>
+    </div>
+</div>
+
+          <!-- РУЧНОЙ ВВОД СТАТИСТИКИ -->
+          <div class="manual-input-section">
+            <h3>✏️ Ручной ввод</h3>
+            <div class="manual-controls">
+              <div class="input-group">
+                <label>Игр сыграно</label>
+                <input type="number" id="manualGames" min="0" value="0" class="manual-input">
+              </div>
+              <div class="input-group">
+                <label>Побед</label>
+                <input type="number" id="manualWins" min="0" value="0" class="manual-input">
+              </div>
+              <button onclick="saveManualStats()" class="import-btn import-btn-primary">💾 Сохранить</button>
+              <button onclick="resetHeroStats()" class="import-btn reset-btn">🔄 Сбросить</button>
+            </div>
+            <div id="manualStatus" class="manual-status"></div>
+          </div>
+
           <div class="builds-section">
             <h3>📦 Сборки</h3>
             <div class="build-tabs">
@@ -95,6 +152,7 @@
               <!-- Сборки будут вставлены через JS -->
             </div>
           </div>
+
           <div class="skills-section">
             <h3>🎯 Скиллы</h3>
             <div class="skill-order" id="skillOrder">
